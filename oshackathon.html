@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortest Job First Scheduling Algorithm Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+
+        .input-table th, .input-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .input-table th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .gantt-chart {
+            margin-top: 30px;
+        }
+
+        .chart {
+            display: flex;
+            height: 50px;
+            position: relative;
+            margin-top: 20px;
+            background-color: #eee;
+        }
+
+        .bar {
+            text-align: center;
+            color: white;
+            line-height: 50px;
+            margin-right: 2px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .bar span {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Shortest Job First Scheduling Algorithm Simulator</h1>
+    <h2>CPU Scheduling Algorithms Simulator</h2>
+
+    <!-- Input Section -->
+    <div class="input-section">
+        <table class="input-table" border="1">
+            <thead>
+                <tr>
+                    <th>Process ID</th>
+                    <th>Arrival Time</th>
+                    <th>Burst Time</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody id="process-input">
+                <tr>
+                    <td><input type="text" placeholder="P1"></td>
+                    <td><input type="number" min="0"></td>
+                    <td><input type="number" min="1"></td>
+                    <td><input type="number" min="1"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button onclick="addProcess()">Add Process</button>
+        <button onclick="simulate()">Simulate</button>
+    </div>
+
+    <!-- Gantt Chart -->
+    <div class="gantt-chart">
+        <h3>Gantt Chart</h3>
+        <div id="ganttChart" class="chart"></div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results">
+        <h3>Results</h3>
+        <p id="metrics"></p>
+    </div>
+</div>
+
+<script>
+    // Store processes
+    let processes = [];
+// Function to add new process rows in the input table
+    function addProcess() {
+        const table = document.getElementById('process-input');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" placeholder="P${table.rows.length + 1}"></td>
+            <td><input type="number" min="0"></td>
+            <td><input type="number" min="1"></td>
+            <td><input type="number" min="1"></td>
+        `;
+        table.appendChild(row);
+    }
+
+    // Function to simulate scheduling algorithms
+    function simulate() {
+        const table = document.getElementById('process-input');
+        processes = [];
+
+        // Extract process data
+        for (let i = 0; i < table.rows.length; i++) {
+            const cells = table.rows[i].cells;
+            const processId = cells[0].querySelector('input').value;
+            const arrivalTime = parseInt(cells[1].querySelector('input').value);
+            const burstTime = parseInt(cells[2].querySelector('input').value);
+            const priority = parseInt(cells[3].querySelector('input').value);
+            processes.push({ processId, arrivalTime, burstTime, priority });
+        }
+
+        // Run FCFS as an example
+        runFCFS();
+    }
+
+    // Function to run First-Come, First-Served (FCFS)
+    function runFCFS() {
+        processes.sort((a, b) => a.arrivalTime - b.arrivalTime); // Sort by arrival time
+        let currentTime = 0;
+        let ganttChart = '';
+        let totalWaitTime = 0, totalTurnaroundTime = 0;
+
+        // Clear previous Gantt Chart
+        const ganttContainer = document.getElementById('ganttChart');
+        ganttContainer.innerHTML = '';
+
+        processes.forEach(process => {
+            let waitTime = currentTime - process.arrivalTime;
+            waitTime = waitTime > 0 ? waitTime : 0;
+            totalWaitTime += waitTime;
+
+            let turnaroundTime = waitTime + process.burstTime;
+            totalTurnaroundTime += turnaroundTime;
+
+            // Create Gantt Chart bar
+            const bar = document.createElement('div');
+            bar.style.width = `${process.burstTime * 30}px`;
+            bar.style.backgroundColor = #${Math.floor(Math.random() * 16777215).toString(16)};
+            bar.classList.add('bar');
+            bar.innerHTML = <span>${process.processId}</span> ${process.burstTime}s;
+            ganttContainer.appendChild(bar);
+
+            currentTime += process.burstTime;
+        });
+
+        // Display results
+        const avgWaitTime = totalWaitTime / processes.length;
+        const avgTurnaroundTime = totalTurnaroundTime / processes.length;
+        document.getElementById('metrics').innerHTML = `
+            <strong>Average Waiting Time:</strong> ${avgWaitTime.toFixed(2)}<br>
+            <strong>Average Turnaround Time:</strong> ${avgTurnaroundTime.toFixed(2)}
+        `;
+    }
+</script>
+
+</body>
+</html>
